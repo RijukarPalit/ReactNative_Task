@@ -1,0 +1,534 @@
+src -> components
+       -> screens
+
+components : 
+
+CustomButton.tsx :
+import React from 'react';
+import { TouchableOpacity, Text, StyleSheet, TouchableOpacityProps, StyleProp, ViewStyle, TextStyle } from 'react-native';
+
+interface CustomButtonProps extends TouchableOpacityProps {
+  title: string;
+  buttonStyle?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
+  onPress: () => void;
+}
+
+const CustomButton: React.FC<CustomButtonProps> = ({
+  title,
+  buttonStyle,
+  textStyle,
+  onPress,
+  ...rest
+}) => {
+  return (
+    <TouchableOpacity style={[styles.button, buttonStyle]} onPress={onPress} {...rest}>
+      <Text style={[styles.buttonText, textStyle]}>{title}</Text>
+    </TouchableOpacity>
+  );
+};
+const styles = StyleSheet.create({
+  button: {
+    backgroundColor: '#007bff',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});
+export default CustomButton;
+
+//////////////////////////////////////////////////////////////////
+
+CustomTextInput.tsx : 
+
+import React from 'react';
+import { TextInput, TextInputProps, View, Text, StyleSheet } from 'react-native';
+
+interface CustomTextInputProps extends TextInputProps {
+  label?: string; // Optional label for the input
+ 
+  icon?: React.ReactNode; // Optional icon component
+  // Add any other custom props you need
+}
+
+const CustomTextInput: React.FC<CustomTextInputProps> = ({ label, icon, ...rest }) => {
+  return (
+    <View style={styles.container}>
+      {label && <Text style={styles.label}>{label}</Text>}
+       
+      <View style={styles.inputWrapper}>
+        {icon && <View style={styles.iconContainer}>{icon}</View>}
+        <TextInput
+          style={[styles.input]} // Apply custom style and inherited styles
+          {...rest} // Spread remaining native TextInputProps
+        />
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    marginBottom: 10,
+  },
+  label: {
+    fontSize: 14,
+    marginBottom: 5,
+    color: '#333',
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    paddingHorizontal: 10,
+  },
+  iconContainer: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    height: 40,
+    fontSize: 16,
+    color: '#333',
+  },
+});
+
+export default CustomTextInput;
+
+//////////////////////////////////////////////////////////
+
+ListItem.tsx :
+
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+//import type { ItemType } from '../../App';
+
+// export type ItemType = {
+//   id: string;
+//   name: string;
+//   //description: string;
+//   age :string;
+//   gender : string;
+// };
+export interface ItemType {
+   id: string;
+  name: string;
+  age :number;
+  gender : string;
+  mobile : number;
+}
+type Props = {
+  item: ItemType;
+  onEdit: () => void;
+};
+
+export default function ListItem({ item, onEdit }: Props) {
+  return (
+    <View style={styles.row}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.title}>{item.name}</Text>
+         <Text style={styles.title}>{item.mobile}</Text>
+        <Text style={styles.description}>{item.age}</Text>
+        <Text style={styles.description}>{item.gender}</Text>
+      </View>
+      <TouchableOpacity onPress={onEdit} style={styles.editButton}>
+        {/* <Edit size={20} color="#1976d2" /> */}
+        <Text style={{ color: '#1976d2' }}>Edit</Text>  
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderColor: '#eee',
+    paddingBottom: 8,
+  },
+  title: { fontSize: 16, fontWeight: '600' },
+  description: { fontSize: 14, color: '#555' },
+  editButton: { padding: 8 },
+});
+
+////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+
+screens :
+
+LogIn.tsx : 
+
+import React, { useEffect, useRef, useState } from "react";
+import { View, TextInput, Button, Alert, StyleSheet,Text } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from "../../App";
+
+const regData = [
+  { name: "ansnamn", email: "sdsmk@gmail.com", pass: "nan" },
+  { name: "john", email: "john@gmail.com", pass: "123" },
+  // { name: "abc", email: "abc@gmail.com", pass: "123456" },
+];
+
+type Props = NativeStackScreenProps<RootStackParamList, 'LogIn'>;
+
+export default function LogIn({ navigation }: Props) {
+  const [name,setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [pass, setPass] = useState('');
+
+  useEffect(() => {
+    (async () => {
+      // Store registrationData only first time
+      const stored = await AsyncStorage.getItem('registrationData');
+      if (!stored) {
+        await AsyncStorage.setItem('registrationData', JSON.stringify(regData));
+      }
+
+      // Check if already logged in
+      const loggedIn = await AsyncStorage.getItem('loggedInData');
+      if (loggedIn) {
+        navigation.replace('Home'); // already logged in
+      }
+    })();
+  }, []);
+
+  const handleLogin = async () => {
+    try {
+      const usersJson = await AsyncStorage.getItem('registrationData');
+      if (!usersJson) return;
+      const users = JSON.parse(usersJson);
+
+      const user = users.find(
+        (u: any) => u.email === email && u.pass === pass
+      );
+      if (!user) {
+        Alert.alert('Invalid credentials');
+        return;
+      }
+
+      // Save logged in user
+      await AsyncStorage.setItem('loggedInData', JSON.stringify(user));
+      navigation.replace('Home'); // navigate to Home
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <TextInput
+        //label = 'Email'
+        style={styles.input}
+          label="Name"
+        placeholder="Name"
+        onChangeText={setName}
+        value={name}
+        placeholderTextColor={'#333'}
+      />
+      <TextInput
+        label = 'Email'
+        style={styles.input}
+        placeholder="Email"
+        onChangeText={setEmail}
+        value={email}
+        placeholderTextColor={'#333'}
+      />
+      <TextInput
+      label = 'Password'
+        style={styles.input}
+        placeholder="Password"
+        secureTextEntry
+        onChangeText={setPass}
+        value={pass}
+        placeholderTextColor={'#333'}
+        // textcolor = {'#333'}
+      />
+      <Button title="Login" onPress={handleLogin} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, justifyContent: 'center', padding: 16 },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 8,
+    marginVertical: 8,
+    borderRadius: 5,
+  },
+});
+
+/////////////////////////////////////////////
+
+HomeScreen.tsx :
+
+
+
+
+import React, { useState, useEffect } from 'react';
+import { View, FlatList, StyleSheet, Text, Button, Alert } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../../App';
+import ListItem from '../components/ListItem';
+import { ItemType } from '../components/ListItem';
+import CustomButton from '../components/CustomButton';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const uuid = () => Math.random().toString(36).substring(2, 9);
+
+type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+
+export default function HomeScreen({ navigation }: Props) {
+  const [items, setItems] = useState<ItemType[]>([]);
+
+  // Load saved list data on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const jsonValue = await AsyncStorage.getItem('items');
+        if (jsonValue != null) {
+          setItems(JSON.parse(jsonValue));
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    })();
+  }, []);
+
+  // Save list whenever items change
+  useEffect(() => {
+    (async () => {
+      try {
+        await AsyncStorage.setItem('items', JSON.stringify(items));
+      } catch (e) {
+        console.log(e);
+      }
+    })();
+  }, [items]);
+
+  const handleSave = (item: ItemType) => {
+    setItems(prev => {
+      const exists = prev.find(i => i.id === item.id);
+      if (exists) {
+        return prev.map(i => (i.id === item.id ? item : i));
+      }
+      return [...prev, { ...item, id: uuid() }];
+    });
+  };
+
+  const handleLogout = async () => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Yes',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await AsyncStorage.removeItem('loggedInData');
+            await AsyncStorage.removeItem('items'); // clear list data too
+            navigation.replace('LogIn'); // back to login screen
+          } catch (e) {
+            console.log(e);
+          }
+        },
+      },
+    ]);
+  };
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={items}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <ListItem
+            item={item}
+            onEdit={() =>
+              navigation.navigate('AddEdit', { item, onSave: handleSave })
+            }
+          />
+        )}
+        ListEmptyComponent={<Text style={styles.empty}>No items yet</Text>}
+      />
+
+      <CustomButton
+        title="ADD"
+        onPress={() => navigation.navigate('AddEdit', { onSave: handleSave })}
+      />
+
+      <View style={{ marginTop: 16 }}>
+        <Button title="Logout" onPress={handleLogout} />
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 16 },
+  empty: { textAlign: 'center', marginTop: 20, color: '#777' },
+});
+
+//////////////////////////////////////////////////////////////
+
+AddEditScreen.tsx :
+
+
+import React, { useState } from 'react';
+import { View, StyleSheet, Alert } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../../App';
+import CustomTextInput from '../components/CustomTextInput';
+import { ItemType } from '../components/ListItem';
+import CustomButton from '../components/CustomButton';
+
+type Props = NativeStackScreenProps<RootStackParamList, 'AddEdit'>;
+
+export default function AddEditScreen({ route, navigation }: Props) {
+  const { item, onSave } = route.params;
+
+  const [name, setName] = useState(item?.name || '');
+  const [age, setAge] = useState<number>(item?.age || 0);
+  const [gender, setGender] = useState(item?.gender || '');
+  const [mobile, setMobile] = useState<number>(item?.mobile || 0); // new mobile field
+
+  const validateMobile = (value: string) => /^[0-9]{10}$/.test(value);
+  const validateAge =(value: string) => /^\d{1,2}(\.\d{1,2})?$/.test(value);
+
+  const handleSave = () => {
+    if (!validateMobile(mobile)) {
+      Alert.alert('Invalid Mobile', 'Mobile number must be exactly 10 digits');
+      return;
+    }
+    if (!validateAge(age)) {
+      Alert.alert('Invalid Age', 'Age must be a number up to two decimals');
+      return;
+    }
+
+    const updated: ItemType = {
+      id: item?.id || '',
+      name,
+      age,
+      gender,
+      mobile,
+     
+    };
+    onSave(updated);
+    navigation.goBack();
+  };
+
+  return (
+    <View style={styles.container}>
+      <CustomTextInput
+        label="Name"
+        placeholder="Enter your Name"
+        value={name}
+        onChangeText={setName}
+        placeholderTextColor={'#333'}
+      />
+
+      <CustomTextInput
+        label="Mobile Number"
+        placeholder="Enter your Mobile Number"
+        value={mobile}
+        keyboardType="numeric"
+        maxLength={10}
+        onChangeText={setMobile}
+        placeholderTextColor={'#333'}
+      />
+
+      <CustomTextInput
+        label="Age"
+        placeholder="Enter your Age"
+        value={age}
+        keyboardType="decimal-pad"
+        onChangeText={setAge}
+        placeholderTextColor={'#333'}
+      />
+
+      <CustomTextInput
+        label="Gender"
+        placeholder="Enter your Gender"
+        value={gender}
+        onChangeText={setGender}
+        placeholderTextColor={'#333'}
+      />
+
+      <CustomButton title={item ? 'Update' : 'Save'} onPress={handleSave} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 16 },
+});
+
+
+///////////////////////////
+
+App.tsx : 
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+// import HomeScreen from './src/screens/HomeScreen';
+// import AddEditScreen from './src/screens/AddEditScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import AddEditScreen from './src/screens/AddEditScreen';
+import { ItemType } from './src/components/ListItem';
+import LogIn from './src/screens/LogIn';
+
+export type RootStackParamList = {
+  LogIn : undefined;
+  Home: undefined;
+  AddEdit: { item?: ItemType; onSave: (item: ItemType) => void };
+};
+
+// export type ItemType = {
+//   id: string;
+//   name: string;
+//   //description: string;
+//   age :string;
+//   gender : string;
+// };
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name = 'LogIn' component={LogIn} />
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="AddEdit" component={AddEditScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+
+
+// yarn add \
+// @react-native-async-storage/async-storage \
+// @react-navigation/native \
+// @react-navigation/native-stack \
+// react-native-gesture-handler \
+// react-native-safe-area-context \
+// react-native-screens
+
+
+//yarn add react-native-worklets
+
+
+
