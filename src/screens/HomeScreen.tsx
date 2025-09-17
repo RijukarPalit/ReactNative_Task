@@ -31,16 +31,16 @@ export default function HomeScreen({ navigation }: Props) {
     })();
   }, []);
 
-  // Save list whenever items change
-  useEffect(() => {
-    (async () => {
-      try {
-        await AsyncStorage.setItem('items', JSON.stringify(items));
-      } catch (e) {
-        console.log(e);
-      }
-    })();
-  }, [items]);
+  // // Save list whenever items change
+  // useEffect(() => {
+  //   (async () => {
+  //     try {
+  //       await AsyncStorage.setItem('items', JSON.stringify(items));
+  //     } catch (e) {
+  //       console.log(e);
+  //     }
+  //   })();
+  // }, [items]);
 
   const handleSave = (item: ItemType) => {
     setItems(prev => {
@@ -52,24 +52,24 @@ export default function HomeScreen({ navigation }: Props) {
     });
   };
 
-  const handleLogout = async () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Yes',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await AsyncStorage.removeItem('loggedInData');
-            await AsyncStorage.removeItem('items'); // clear list data too
-            navigation.replace('LogIn'); // back to login screen
-          } catch (e) {
-            console.log(e);
-          }
-        },
-      },
-    ]);
-  };
+  // const handleLogout = async () => {
+  //   Alert.alert('Logout', 'Are you sure you want to logout?', [
+  //     { text: 'Cancel', style: 'cancel' },
+  //     {
+  //       text: 'Yes',
+  //       style: 'destructive',
+  //       onPress: async () => {
+  //         try {
+  //           await AsyncStorage.removeItem('loggedInData');
+  //           await AsyncStorage.removeItem('items'); // clear list data too
+  //           navigation.replace('LogIn'); // back to login screen
+  //         } catch (e) {
+  //           console.log(e);
+  //         }
+  //       },
+  //     },
+  //   ]);
+  // };
 
   return (
     <View style={styles.container}>
@@ -92,9 +92,9 @@ export default function HomeScreen({ navigation }: Props) {
         onPress={() => navigation.navigate('AddEdit', { onSave: handleSave })}
       />
 
-      <View style={{ marginTop: 16 }}>
+      {/* <View style={{ marginTop: 16 }}>
         <Button title="Logout" onPress={handleLogout} />
-      </View>
+      </View> */}
     </View>
   );
 }

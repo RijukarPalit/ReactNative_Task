@@ -3,6 +3,7 @@ import { View, TextInput, Button, Alert, StyleSheet,Text } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from "../../App";
+import { StackActions } from '@react-navigation/native'; 
 
 const regData = [
   { name: "ansnamn", email: "sdsmk@gmail.com", pass: "nan" },
@@ -49,7 +50,8 @@ export default function LogIn({ navigation }: Props) {
 
       // Save logged in user
       await AsyncStorage.setItem('loggedInData', JSON.stringify(user));
-      navigation.replace('Home'); // navigate to Home
+      // navigation.replace('Home'); // navigate to Home
+       navigation.dispatch(StackActions.replace('Home'));
     } catch (e) {
       console.log(e);
     }

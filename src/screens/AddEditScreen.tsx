@@ -1,16 +1,19 @@
 
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
 import CustomTextInput from '../components/CustomTextInput';
 import { ItemType } from '../components/ListItem';
 import CustomButton from '../components/CustomButton';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddEdit'>;
 
 export default function AddEditScreen({ route, navigation }: Props) {
   const { item, onSave } = route.params;
+
+  const[items,setItems] = useState<ItemType[]>([])
 
   const [name, setName] = useState(item?.name || '');
   const [age, setAge] = useState<number>(item?.age || 0);
@@ -20,6 +23,17 @@ export default function AddEditScreen({ route, navigation }: Props) {
   const validateMobile = (value: string) => /^[0-9]{10}$/.test(value);
   const validateAge =(value: string) => /^\d{1,2}(\.\d{1,2})?$/.test(value);
 
+
+    // Save list whenever items change
+    useEffect(() => {
+      (async () => {
+        try {
+          await AsyncStorage.setItem('items', JSON.stringify(items));
+        } catch (e) {
+          console.log(e);
+        }
+      })();
+    }, [items]);
   const handleSave = () => {
     if (!validateMobile(mobile)) {
       Alert.alert('Invalid Mobile', 'Mobile number must be exactly 10 digits');
