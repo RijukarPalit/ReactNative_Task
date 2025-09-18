@@ -12,7 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export type RootStackParamList = {
   LogIn: undefined;
   Home: undefined;
-  AddEdit: { item?: ItemType; onSave: (item: ItemType) => void };
+  AddEdit: { item?: ItemType;  onSave ?: (item: ItemType) => void };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

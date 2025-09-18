@@ -18,43 +18,81 @@ export default function AddEditScreen({ route, navigation }: Props) {
   const [name, setName] = useState(item?.name || '');
   const [age, setAge] = useState<number>(item?.age || 0);
   const [gender, setGender] = useState(item?.gender || '');
-  const [mobile, setMobile] = useState<number>(item?.mobile || 0); // new mobile field
+  const [mobile, setMobile] = useState<number>(item?.mobile || 0); 
 
   const validateMobile = (value: string) => /^[0-9]{10}$/.test(value);
   const validateAge =(value: string) => /^\d{1,2}(\.\d{1,2})?$/.test(value);
 
 
     // Save list whenever items change
-    useEffect(() => {
-      (async () => {
-        try {
-          await AsyncStorage.setItem('items', JSON.stringify(items));
-        } catch (e) {
-          console.log(e);
-        }
-      })();
-    }, [items]);
-  const handleSave = () => {
-    if (!validateMobile(mobile)) {
-      Alert.alert('Invalid Mobile', 'Mobile number must be exactly 10 digits');
-      return;
-    }
-    if (!validateAge(age)) {
-      Alert.alert('Invalid Age', 'Age must be a number up to two decimals');
-      return;
+    // useEffect(() => {
+    //   (async () => {
+    //     try {
+    //       await AsyncStorage.setItem('items', JSON.stringify(items));
+    //     } catch (e) {
+    //       console.log(e);
+    //     }
+    //   })();
+    // }, [items]);
+
+  // const handleSave = () => {
+  //   if (!validateMobile(mobile)) {
+  //     Alert.alert('Invalid Mobile', 'Mobile number must be exactly 10 digits');
+  //     return;
+  //   }
+  //   if (!validateAge(age)) {
+  //     Alert.alert('Invalid Age', 'Age must be a number up to two decimals');
+  //     return;
+  //   }
+
+  //   const updated: ItemType = {
+  //     id: item?.id || '',
+  //     name,
+  //     age,
+  //     gender,
+  //     mobile,
+     
+  //   };
+  //   onSave(updated);
+  //   navigation.goBack();
+  // };
+
+  const handleSave = async () => {
+  if (!validateMobile(mobile.toString())) {
+    Alert.alert('Invalid Mobile', 'Mobile number must be exactly 10 digits');
+    return;
+  }
+  if (!validateAge(age.toString())) {
+    Alert.alert('Invalid Age', 'Age must be a number up to two decimals');
+    return;
+  }
+
+  try {
+    const storedItems = await AsyncStorage.getItem('items');
+    let items: ItemType[] = storedItems ? JSON.parse(storedItems) : [];
+
+    // if editing, replace; if new, add
+    if (item?.id) {
+      items = items.map(i => (i.id === item.id ? { ...i, name, age, gender, mobile } : i));
+    } else {
+      const newItem: ItemType = {
+        id: Math.random().toString(36).substring(2, 9),
+        name,
+        age,
+        gender,
+        mobile,
+      };
+      items.push(newItem);
     }
 
-    const updated: ItemType = {
-      id: item?.id || '',
-      name,
-      age,
-      gender,
-      mobile,
-     
-    };
-    onSave(updated);
-    navigation.goBack();
-  };
+    await AsyncStorage.setItem('items', JSON.stringify(items));
+    console.log('Item saved successfully' + items);
+    navigation.goBack(); // back to HomeScreen
+  } catch (e) {
+    console.log(e);
+  }
+};
+
 
   return (
     <View style={styles.container}>

@@ -1,7 +1,5 @@
 
-
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useCallback } from 'react';
 import { View, FlatList, StyleSheet, Text, Button, Alert } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
@@ -9,6 +7,8 @@ import ListItem from '../components/ListItem';
 import { ItemType } from '../components/ListItem';
 import CustomButton from '../components/CustomButton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { useFocusEffect } from '@react-navigation/native';
 
 const uuid = () => Math.random().toString(36).substring(2, 9);
 
@@ -18,18 +18,38 @@ export default function HomeScreen({ navigation }: Props) {
   const [items, setItems] = useState<ItemType[]>([]);
 
   // Load saved list data on mount
-  useEffect(() => {
-    (async () => {
-      try {
-        const jsonValue = await AsyncStorage.getItem('items');
-        if (jsonValue != null) {
-          setItems(JSON.parse(jsonValue));
+  // useEffect(() => {
+  //   (async () => {
+  //     try {
+  //       const jsonValue = await AsyncStorage.getItem('items');
+  //       if (jsonValue != null) {
+  //         setItems(JSON.parse(jsonValue));
+  //       }
+  //     } catch (e) {
+  //       console.log(e);
+  //     }
+  //   })();
+  // }, []);
+
+    // 🔹 Load saved list data whenever screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      const loadItems = async () => {
+        try {
+          const jsonValue = await AsyncStorage.getItem('items');
+          if (jsonValue != null) {
+            setItems(JSON.parse(jsonValue));
+          } else {
+            setItems([]);
+          }
+        } catch (e) {
+          console.log(e);
         }
-      } catch (e) {
-        console.log(e);
-      }
-    })();
-  }, []);
+      };
+      loadItems();
+    }, [])
+  );
+
 
   // // Save list whenever items change
   // useEffect(() => {

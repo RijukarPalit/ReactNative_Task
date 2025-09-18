@@ -6,8 +6,8 @@ import type { RootStackParamList } from "../../App";
 import { StackActions } from '@react-navigation/native'; 
 
 const regData = [
-  { name: "ansnamn", email: "sdsmk@gmail.com", pass: "nan" },
-  { name: "john", email: "john@gmail.com", pass: "123" },
+  { name: "abc", email: "abc@gmail.com", pass: "123456" },
+  { name: "john", email: "john@gmail.com", pass: "123456" },
   // { name: "abc", email: "abc@gmail.com", pass: "123456" },
 ];
 
@@ -29,7 +29,8 @@ export default function LogIn({ navigation }: Props) {
       // Check if already logged in
       const loggedIn = await AsyncStorage.getItem('loggedInData');
       if (loggedIn) {
-        navigation.replace('Home'); // already logged in
+        // navigation.replace('Home'); // already logged in
+        navigation.dispatch(StackActions.replace('Home'));
       }
     })();
   }, []);
